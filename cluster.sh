@@ -5,7 +5,9 @@
 function usage {
   local PROG=`basename $0`
   echo "$PROG:"
-  echo "  $PROG new <cluster name>: create new cluster"
+  echo "  $PROG new <cluster name> [<cluster initial size>]: create new cluster. default initial size is 1."
+  echo "  $PROG del <cluster name>: delete new cluster."
+  echo "  $PROG clean <cluster name>: remove all members from cluster."
 }
 
 function new {
@@ -21,6 +23,38 @@ function new {
   [[ $EXIST -eq 0 ]] && CMD=update
   etcdctl $CMD discovery/$CLUSTER/_config/size $SIZE &> /dev/null
   echo $CLUSTER
+}
+
+function del {
+  local NAME=$1
+  local CLUSTER=`echo -n $NAME | shasum | awk '{print $1}'`
+
+  _config_etcd
+
+  etcdctl ls discovery/$CLUSTER &> /dev/null
+  local EXIST=$?
+
+  if [ $EXIST -eq 0 ]; then
+    etcdctl rm discovery/$CLUSTER/_config/size &> /dev/null
+    etcdctl rmdir discovery/$CLUSTER/_config &> /dev/null
+    etcdctl rmdir discovery/$CLUSTER &> /dev/null
+  fi
+}
+
+function clean {
+  local NAME=$1
+  local CLUSTER=`echo -n $NAME | shasum | awk '{print $1}'`
+
+  _config_etcd
+
+  etcdctl ls discovery/$CLUSTER &> /dev/null
+  local EXIST=$?
+
+  if [ $EXIST -eq 0 ]; then
+    for node in `etcdctl ls discovery/$CLUSTER`; do
+      etcdctl rm $node | awk '{print $2}' | awk -F= '{print $2}'
+    done 
+  fi
 }
 
 function _config_etcd {
@@ -48,6 +82,14 @@ case $COMMAND in
   new)
     `dirname $0`/prereq.sh
     new $@
+    ;;
+  del)
+    `dirname $0`/prereq.sh
+    del $@
+    ;;
+  clean)
+    `dirname $0`/prereq.sh
+    clean $@
     ;;
   *)
     usage
