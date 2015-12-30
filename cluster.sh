@@ -25,15 +25,12 @@ function new {
 
 function _config_etcd {
   local CONFIG_PATH=`brew --prefix`/opt/etcd/homebrew.mxcl.etcd.plist
-  local CONF=`cat <<EOF
-$(tpl_etcd)
-EOF`
   local CONFHASH=8a0329384a377ddf78f9c726adcf4447c0c7a92d
 
   if [ $CONFHASH != `shasum $CONFIG_PATH | awk '{print $1}'` ]; then
     cp $CONFIG_PATH{,.backup} 
     cat <<EOF > $CONFIG_PATH
-$CONF
+$(tpl_etcd)
 EOF
     echo "Update etcd launchd configuration"
     echo "Restart etcd"
