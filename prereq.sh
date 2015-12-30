@@ -4,3 +4,5 @@ command -v brew &> /dev/null || ruby -e "$(curl -fsSL https://raw.githubusercont
 
 command -v corectl &> /dev/null || (brew update && brew install corectl)
 command -v fleetctl &> /dev/null || (brew update && brew install fleetctl)
+
+mkdir -p $HOME/.core-utils

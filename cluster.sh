@@ -6,6 +6,7 @@ function usage {
   local PROG=`basename $0`
   echo "$PROG:"
   echo "  $PROG new <cluster name> [<cluster initial size>]: create new cluster. default initial size is 1."
+  echo "  $PROG run <cluster name> [<cluster initial size>]: run new cluster. default initial size is 2."
   echo "  $PROG del <cluster name>: delete new cluster."
   echo "  $PROG clean <cluster name>: remove all members from cluster."
 }
@@ -23,6 +24,25 @@ function new {
   [[ $EXIST -eq 0 ]] && CMD=update
   etcdctl $CMD discovery/$CLUSTER/_config/size $SIZE &> /dev/null
   echo $CLUSTER
+}
+
+function run {
+  local NAME=$1
+  local SIZE=${2:-1}
+  local CONF=`_config_cloud $NAME`
+
+  _config_etcd
+
+  local INIT_SIZE=`etcdctl get discovery/$CLUSTER/_config/size`
+  [[ $SIZE -lt $INIT_SIZE ]] && SIZE=$INIT_SIZE
+
+  if [ $SIZE -eq 1 ]; then
+    sudo corectl run --channel beta --cloud_config $CONF --name $NAME -d
+  else
+    for SEQ in `seq -w 1 $SIZE`; do
+      sudo corectl run --channel beta --cloud_config $CONF --name ${NAME}$SEQ -d
+    done
+  fi
 }
 
 function del {
@@ -84,6 +104,7 @@ function _config_cloud {
   cat <<EOF > $CONF
 $(tpl_cloud $NAME)
 EOF
+  echo -n $CONF
 }
 
 COMMAND=$1
@@ -94,6 +115,10 @@ case $COMMAND in
   new)
     `dirname $0`/prereq.sh
     new $@
+    ;;
+  run)
+    `dirname $0`/prereq.sh
+    run $@
     ;;
   del)
     `dirname $0`/prereq.sh
