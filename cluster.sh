@@ -38,7 +38,7 @@ function _config_etcd {
     <string>homebrew.mxcl.etcd</string>
     <key>ProgramArguments</key>
     <array>
-      <string>/usr/local/opt/etcd/bin/etcd</string>
+      <string>`brew --prefix`/opt/etcd/bin/etcd</string>
       <string>--listen-client-urls</string>
       <string>http://0.0.0.0:2379,http://0.0.0.0:4001</string>
       <string>--advertise-client-urls</string>
@@ -47,11 +47,11 @@ function _config_etcd {
     <key>RunAtLoad</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/tmp/etcd.log</string>
+    <string>`brew --prefix`/var/log/etcd.log</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/etcd.log</string>
+    <string>`brew --prefix`/var/log/etcd.log</string>
     <key>WorkingDirectory</key>
-    <string>/usr/local/var</string>
+    <string>`brew --prefix`/var</string>
   </dict>
 </plist>
 EOF`
@@ -64,7 +64,7 @@ $CONF
 EOF
     echo "Update etcd launchd configuration"
     echo "Restart etcd"
-    ln -sfv /usr/local/opt/etcd/*.plist ~/Library/LaunchAgents
+    ln -sfv `brew --prefix`/opt/etcd/*.plist ~/Library/LaunchAgents
     launchctl load ~/Library/LaunchAgents/homebrew.mxcl.etcd.plist &> /dev/null
     launchctl stop homebrew.mxcl.etcd
     launchctl start homebrew.mxcl.etcd
