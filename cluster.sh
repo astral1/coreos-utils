@@ -75,9 +75,21 @@ EOF
   fi
 }
 
+function _config_cloud {
+  local NAME=$1
+  local CONFPATH=$HOME/.coreos-utils
+  [[ -d $CONFPATH ]] || mkdir -p $CONFPATH
+  local CONF=$CONFPATH/$NAME-init.yml
+
+  cat <<EOF > $CONF
+$(tpl_cloud $NAME)
+EOF
+}
+
 COMMAND=$1
 shift
 
+tpl_cloud
 case $COMMAND in
   new)
     `dirname $0`/prereq.sh
