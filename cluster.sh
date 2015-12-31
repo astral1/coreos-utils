@@ -71,7 +71,7 @@ function run {
 function stop {
   local NAME=$1
 
-  for NODE in `corectl query -a | sed '1d' | grep test\[0-9\]\* | awk '{print $6}'`; do
+  for NODE in `corectl query -a | sed '1d' | grep $NAME\[0-9\]\* | awk '{print $6}'`; do
     corectl kill $NODE
   done
 
