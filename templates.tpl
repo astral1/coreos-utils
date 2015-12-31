@@ -52,7 +52,7 @@ coreos:
     listen-peer-urls: "http://\$private_ipv4:2380,http://\$private_ipv4:7001"
   fleet:
     public-ip: "\$public_ipv4"
-    metadata: "region=coupang"
+    metadata: "region=local,environ=xhyve"
   flannel:
     etcd_prefix: "/coreos.com/network"
   units:
