@@ -7,6 +7,8 @@ CONF_ROOT=$HOME/.coreos-utils
 function usage {
   local PROG=`basename $0`
   echo "USAGE for $PROG:"
+  echo "  $PROG kickstart:
+      create and run new cluster named 'coreos' for test or develop"
   echo "  $PROG new <cluster name> [<cluster initial size>]:
       create new cluster. default initial size is 1."
   echo "  $PROG run <cluster name> [<cluster size>]:
@@ -17,6 +19,15 @@ function usage {
       delete new cluster."
   echo "  $PROG clean <cluster name>:
       remove all members from cluster."
+}
+
+function kickstart {
+  local NAME=coreos
+  echo "-- create 'coreos' cluster configuration in etcd and $CONF_ROOT with initial size 1"
+  new $NAME
+  echo "-- launch 3 hosts in 'coreos' cluster"
+  run $NAME 3
+  echo "-- run command './cluster.sh del coreos' in order to stop and delete 'coreos' cluster"
 }
 
 function new {
@@ -51,7 +62,7 @@ function run {
   if [ $SIZE -eq 1 ]; then
     sudo corectl run --channel beta --cloud_config $CONF --name $NAME -d
   else
-    for SEQ in `seq -w 1 $SIZE`; do
+    for SEQ in `seq -w -f %02g 1 $SIZE`; do
       sudo corectl run --channel beta --cloud_config $CONF --name ${NAME}$SEQ -d
     done
   fi
@@ -96,7 +107,7 @@ function clean {
 
   if [ $EXIST -eq 0 ]; then
     for node in `etcdctl ls discovery/$CLUSTER`; do
-      etcdctl rm $node | awk '{print $2}' | awk -F= '{print $2}'
+      etcdctl rm $node | awk '{print $2}' | awk -F= '{print $2}' | awk -F/ '{print $NF}' | cut -d: -f 1
     done 
   fi
 }
@@ -139,6 +150,10 @@ COMMAND=$1
 shift
 
 case $COMMAND in
+  kickstart)
+    `dirname $0`/prereq.sh
+    kickstart $@
+    ;;
   new)
     `dirname $0`/prereq.sh
     new $@
