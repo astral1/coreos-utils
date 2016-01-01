@@ -26,15 +26,18 @@ Usage
 ```
 USAGE for cluster.sh:
   cluster.sh kickstart:
-      create and run new cluster named 'coreos' for test or develop
+    create and run new cluster named 'coreos' for test or develop
   cluster.sh new <cluster name> [<cluster initial size>]:
-      create new cluster. default initial size is 1.
+    create new cluster. default initial size is 1.
   cluster.sh run <cluster name> [<cluster size>]:
-      run new cluster. default size is 1. if cluster size is less than initial size, it will be modified to initial size.
+    run new cluster. default size is 1. if cluster size is less than initial size,
+    it will be modified to initial size.
+  cluster.sh env <cluster name>:
+    environment variables for fleetd.
   cluster.sh stop <cluster name>:
-      stop running cluster. kill all hosts
+    stop running cluster. kill all hosts
   cluster.sh del <cluster name>:
-      delete new cluster.
+    delete new cluster.
   cluster.sh clean <cluster name>:
-      remove all members from cluster.
+    remove all members from cluster.
 ```

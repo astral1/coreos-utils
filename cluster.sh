@@ -12,7 +12,10 @@ function usage {
   echo "  $PROG new <cluster name> [<cluster initial size>]:
       create new cluster. default initial size is 1."
   echo "  $PROG run <cluster name> [<cluster size>]:
-      run new cluster. default size is 1. if cluster size is less than initial size, it will be modified to initial size."
+      run new cluster. default size is 1. if cluster size is less than initial size,
+      it will be modified to initial size."
+  echo "  $PROG env <cluster name>:
+      environment variables for fleetd."
   echo "  $PROG stop <cluster name>:
       stop running cluster. kill all hosts"
   echo "  $PROG del <cluster name>:
@@ -68,6 +71,24 @@ function run {
   fi
 }
 
+function env {
+  local NAME=$1
+  local CLUSTER=`echo -n $NAME | shasum | awk '{print $1}'`
+  local LEADER
+
+  _config_etcd
+
+  etcdctl ls discovery/$CLUSTER &> /dev/null
+  local EXIST=$?
+
+  if [ $EXIST -eq 0 ]; then
+    LEADER_NODE=$(etcdctl ls discovery/$CLUSTER | head -1)
+    LEADER=$(etcdctl get $LEADER_NODE | cut -d= -f2 | awk -F: 'BEGIN{OFS=":"} {print $1, $2}')
+  fi
+
+  echo export FLEETCTL_ENDPOINT=${LEADER}:2379
+}
+
 function stop {
   local NAME=$1
 
@@ -114,7 +135,7 @@ function clean {
 
 function _config_etcd {
   local CONFIG_PATH=`brew --prefix`/opt/etcd/homebrew.mxcl.etcd.plist
-  local CONFHASH=8a0329384a377ddf78f9c726adcf4447c0c7a92d
+  local CONFHASH=fec86c605f860e210a8c19965eb7f39c5dca44ce
 
   if [ $CONFHASH != `shasum $CONFIG_PATH | awk '{print $1}'` ]; then
     cp $CONFIG_PATH{,.backup} 
@@ -161,6 +182,10 @@ case $COMMAND in
   run)
     `dirname $0`/prereq.sh
     run $@
+    ;;
+  env)
+    `dirname $0`/prereq.sh
+    env $@
     ;;
   stop)
     `dirname $0`/prereq.sh
